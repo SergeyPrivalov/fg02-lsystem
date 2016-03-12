@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>L system</title>
+    <script>
+        function getRule(){
+            var a = document.getElementById("rule");
+            return a.value;
+        }
+        function getIteration(str){
+            var result = "";
+            for (var i=0; i<str.length; ++i){
+                var letter = str.charAt(i);
+                if(letter == 'F'){
+                    result += getRule();
+                }
+                else {
+                    result += letter;
+                }
+            }
+            return result;
+        }
+        function Point(x,y,angle){
+            this.x = x;
+            this.y = y;
+            this.angle = angle;
+            return this;
+        }
+        function draw(x,y,x1,y1,context){
+            context.beginPath();
+            context.moveTo(x, y);
+            context.lineTo(x1, y1);
+            context.stroke();
+        }
+        function getAxiom(axiom,number){
+            for(var i = 0; i < number; ++i) {
+                axiom = getIteration(axiom);
+            }
+            return axiom;
+        }
+        function getAngle(){
+            var a = document.getElementById("angle");
+            var number = parseInt(a.value.substr(3));
+            return Math.PI/number;
+        }
+        function getFractal(axiom,number,angle,x,y,step) {
+            axiom = getAxiom(axiom,number);
+            step = step/(number/2);
+            var pl = getAngle();
+            var state = [];
+            var canvas = document.getElementById("canvas");
+            var canvasHeight = parseInt(canvas.getAttribute("height"));
+            var canvasWidth = parseInt(canvas.getAttribute("width"));
+            var context = canvas.getContext('2d');
+            context.lineWidth = "1";
+            context.strokeStyle = "#00FF00";
+            context.fillStyle = "#0000FF";
+            context.fillRect(0,0,canvasWidth,canvasHeight);
+            for (var i = 0; i < axiom.length; ++i) {
+                switch (axiom.charAt(i)){
+                    case '+': angle += pl; break;
+                    case '-': angle -= pl; break;
+                    case '[': state.push(new Point(x,y,angle)); break;
+                    case ']': {
+                        var point = state.pop();
+                        x = point.x;
+                        y = point.y;
+                        angle = point.angle;
+                        break;
+                    }
+                    case 'F': {
+                        var x1 = x + step*Math.cos(angle);
+                        var y1 = y - step*Math.sin(angle);
+                        draw(x, y, x1, y1, context);
+                        x = x1;
+                        y = y1;
+                        break;
+                    }
+                }
+            }
+        }
+        function readValues() {
+            var axiom = document.getElementById("axiom");
+            var number = document.getElementById("it");
+            var x = document.getElementById("x0");
+            var y = document.getElementById("y0");
+            var angle = document.getElementById("an0");
+            var a = angle.value;
+            angle = Math.PI/parseInt(a.charAt(3));
+            var step = document.getElementById("step");
+            getFractal(axiom.value, parseInt(number.value),angle,parseInt(x.value),parseInt(y.value),parseInt(step.value));
+        }
+        function makeBush() {
+            writeFields("F","-F+F+[+F-F-]-[-F+F+F]","pi/8",100,550,"pi/2");
+        }
+        function makeSnowflake() {
+            writeFields("[F]+[F]+[F]+[F]+[F]+[F]","F[+FF][-FF]FF[+F][-F]FF","pi/3",300,300,"pi/1");
+        }
+        function writeFields(axiom,rule,angle,x,y,firsAngle) {
+            var q = document.getElementById("axiom");
+            q.value = axiom;
+            q = document.getElementById("rule");
+            q.value = rule;
+            q = document.getElementById("angle");
+            q.value = angle;
+            q = document.getElementById("x0");
+            q.value = x;
+            q = document.getElementById("y0");
+            q.value = y;
+            q = document.getElementById("step");
+            q.value = 20;
+            q = document.getElementById("it");
+            q.value = 1;
+            q = document.getElementById("an0");
+            q.value = firsAngle;
+        }
+    </script>
+</head>
+<body>
+<table align="left" border="2">
+    <tr>
+        <td>
+            <canvas height="600" width="600" id="canvas"></canvas>
+        </td>
+        <td>
+            Аксиома <textarea id="axiom" rows="1" cols="25"></textarea> </br>
+            Правило F = <textarea id="rule" cols="25" rows="1"></textarea> </br>
+            Угол <textarea id="angle" cols="5" rows="1"></textarea> </br>
+            Начальная позиция <textarea id="x0" rows="1" cols="3"></textarea>
+            <textarea id="y0" rows="1" cols="3"></textarea>
+            <textarea id="an0" rows="1" cols="3"></textarea> </br>
+            Шаг <textarea id="step" rows="1" cols="2"></textarea> </br>
+            Колличество итерраций <textarea id="it" rows="1" cols="3"></textarea> </br>
+            <input type="button" onclick="readValues()" value="Нарисовать"> </br>
+            <input type="button" onclick="makeBush()" value="Куст"> </br>
+            <input type="button" onclick="makeSnowflake()" value="Снежинка"> </br>
+        </td>
+    </tr>
+</table>
+</body>
+</html>
